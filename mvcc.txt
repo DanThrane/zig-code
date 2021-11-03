@@ -1,0 +1,35 @@
+Database state:
+- Records
+- Active transactions (list protected by mutex)
+
+Record state:
+- Transaction created in (mandatory, immutable)
+- Transaction deleted in (optional, atomically updated)
+- Probably just use a mutex to deal with the different versions
+  - If we have contention here, then we are probably about to fail
+    a transaction.
+- Maximum amount of versions stored in a fixed array
+
+Transaction state:
+- ID
+- inverse command stack (used by rollback)
+
+openTransaction()
+- Allocate a new ID and add to active transactions
+
+commit()
+- Remove from list of active transactions
+
+rollback()
+- Run the inverse command stack (reversing all our changes)
+- Remove from list of active transactions
+
+update()
+- If the record is visible right now, write the update
+  (use an atomic swap)
+- If the record is not visible, immediately rollback the transaction
+  and fail.
+
+read()
+- If the record is visible, read it
+- If the record is not visible, fail
